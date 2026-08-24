@@ -209,7 +209,51 @@ why step 10 matters.
 
 ---
 
-## 10. Swap in the REAL dataset (once you're ready)
+## 11. Phase 3 — one command that runs everything, and remembers every experiment
+
+Right now, running three separate scripts and eyeballing the printed
+numbers works, but it doesn't scale — you'll forget what settings gave
+you which score after your 10th experiment. Phase 3 fixes that two
+ways:
+
+**A) A validation step, so broken data never quietly reaches training.**
+```
+python -m src.pipeline.validate_data
+```
+This runs sanity checks (no missing values, no negative amounts, the
+answer column only contains 0/1, etc.) and stops loudly if anything
+looks wrong — see `src/pipeline/validate_data.py` for the full list and
+why each check exists.
+
+**B) MLflow — automatic experiment tracking.**
+**What is MLflow, really?** Every time you train a model, it records a
+"run": what settings you used and what scores came out — automatically,
+so you never have to remember or write it down yourself.
+
+Run the whole pipeline (validate → preprocess → train all 3 models →
+evaluate → log to MLflow → promote a champion) with:
+```
+python -m src.pipeline.train_pipeline
+```
+
+Then open a browser dashboard of every run you've ever done:
+```
+mlflow ui
+```
+and visit **http://localhost:5000**. Click "fraud-detection" (our
+experiment name) and you'll see every run listed with its metrics —
+tick two runs' checkboxes and click "Compare" to see them side by side.
+
+**What's this "champion" thing?** After every pipeline run, the model
+with the best PR-AUC gets checked against whoever the CURRENT champion
+is (saved in `outputs/models/registry/champion_metadata.json`). It only
+gets promoted if it's at least as good — so a bad run can never
+accidentally replace a good model. This is the same logic real MLOps
+teams use before anything reaches production.
+
+---
+
+## 12. Swap in the REAL dataset (once you're ready)
 
 1. Go to https://www.kaggle.com/ and create a free account.
 2. Search for **"Credit Card Fraud Detection" (ULB / Worldline /
@@ -217,9 +261,11 @@ why step 10 matters.
 3. Put that file at `data/raw/creditcard.csv`, **replacing** the fake
    one (same filename, so nothing else needs to change).
 4. Re-run everything from step 6 onward (`train_baseline`,
-   `train_xgboost`, `compare_models`). Now you're training on 284,807
-   real transactions instead of 20,000 fake ones — and this time the
-   PR-AUC differences between models will actually mean something.
+   `train_xgboost`, `compare_models`), or just re-run the whole pipeline
+   with `python -m src.pipeline.train_pipeline`. Now you're training on
+   284,807 real transactions instead of 20,000 fake ones — and this
+   time the PR-AUC differences between models will actually mean
+   something.
 
 ---
 
@@ -227,9 +273,9 @@ why step 10 matters.
 
 1. ~~Local setup~~ ✅ / ~~Baseline model~~ ✅
 2. ~~Advanced model: XGBoost with imbalance handling, compared fairly
-   against the baseline~~ ✅ *(you are here)*
-3. Wrap everything into a clean, reusable pipeline + add MLflow so
-   every experiment's results get tracked automatically.
+   against the baseline~~ ✅
+3. ~~Clean, reusable pipeline + MLflow experiment tracking + a
+   champion/challenger registry~~ ✅ *(you are here)*
 4. Move training into Azure ML (cloud), with the dataset registered as
    a Data Asset.
 5. Automate it: GitHub Actions runs your tests and retrains the model
@@ -241,7 +287,7 @@ why step 10 matters.
 8. Wrap the cloud infrastructure itself in Terraform, so the whole
    system can be rebuilt from scratch with one command.
 
-Come back and say "let's do phase 3" whenever you're ready to keep
+Come back and say "let's do phase 4" whenever you're ready to keep
 going.
 
 ## Project folder map
@@ -264,10 +310,14 @@ fraud-detection-pipeline/
 │   │   ├── train_xgboost.py      <- trains XGBoost (2 imbalance strategies)
 │   │   ├── compare_models.py     <- champion vs challenger comparison
 │   │   └── evaluate.py           <- scores a model on test data
+│   ├── pipeline/
+│   │   ├── validate_data.py      <- data sanity checks (stage 1)
+│   │   └── train_pipeline.py     <- runs every stage + MLflow + registry
 │   └── utils/
 │       └── config.py             <- all file paths & constants
 ├── tests/
-│   └── test_features.py          <- automated checks for our code
+│   ├── test_features.py          <- automated checks for our code
+│   └── test_validate_data.py     <- automated checks for validation
 ├── requirements.txt              <- list of packages to install
 └── README.md                     <- this file
 ```

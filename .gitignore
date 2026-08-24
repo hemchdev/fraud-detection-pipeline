@@ -4,5 +4,8 @@ __pycache__/
 .pytest_cache/
 data/raw/*.csv
 outputs/models/*.joblib
+outputs/models/registry/
+mlruns/
+mlflow.db
 .ipynb_checkpoints/
 .env
