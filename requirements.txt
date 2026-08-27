@@ -6,3 +6,8 @@ pytest>=7.4
 xgboost>=2.0
 imbalanced-learn>=0.12
 mlflow>=2.14
+
+# Phase 4 — only needed on YOUR machine to talk to Azure (not inside
+# the cloud job itself, which uses aml/environment.yml instead)
+azure-ai-ml>=1.19
+azure-identity>=1.17

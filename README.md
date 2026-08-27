@@ -253,7 +253,154 @@ teams use before anything reaches production.
 
 ---
 
-## 12. Swap in the REAL dataset (once you're ready)
+## 13. Phase 4 — moving training to Azure ML (the cloud)
+
+**Heads up before we start:** everything up to now, I actually ran
+myself and watched it work. From here on, I can't — I don't have
+network access to Azure from where I run code, so I can't create your
+Azure account, click your buttons, or submit a real cloud job on your
+behalf. What I *did* do: verified every Azure SDK import in the code
+below against the real installed library (not just my memory), and ran
+the actual training script's logic locally as a stand-in test — it
+works. The only genuinely untested part is the real Azure connection
+itself. **If any command below errors, paste me the exact error message
+and I'll help you fix it.**
+
+**Also — this phase can cost real money if left running.** Read the
+cost note at the end of this section before you start.
+
+### What are we actually building here, in plain words?
+
+Right now your training happens on your laptop. Azure ML lets the
+*same kind of training* happen on a rented computer in Microsoft's data
+center instead — useful because cloud machines can be much bigger than
+your laptop, can run unattended on a schedule, and every run gets
+automatically tracked and versioned. Five new Azure concepts, explained
+simply:
+
+- **Resource group** — a folder that holds every Azure resource for
+  this project together, so you can delete the whole project in one
+  click later.
+- **Workspace** — the "home base" for all your ML work in Azure —
+  datasets, models, and job history all live inside it.
+- **Compute cluster** — virtual machines Azure spins up *only when a
+  job needs them*, then shuts back down. `min-instances 0` means you
+  pay nothing while it's idle.
+- **Environment** — a recipe listing exactly which Python packages
+  need to be installed in the container that runs your code (the cloud
+  version of `requirements.txt`).
+- **Data Asset** — a named, versioned pointer to your dataset, stored
+  in Azure, that jobs reference by name instead of a hardcoded path.
+
+### Step-by-step setup
+
+**1. Create a free Azure account.**
+Go to https://azure.microsoft.com/free — you get $200 of credit for 30
+days plus some always-free services for 12 months. Needs a credit card
+for identity verification, but you won't be charged unless you go over
+the free credit.
+
+**2. Install the Azure CLI** (the `az` command).
+Follow the instructions for your OS: https://learn.microsoft.com/cli/azure/install-azure-cli
+Then add the machine learning extension:
+```
+az extension add -n ml
+```
+
+**3. Log in:**
+```
+az login
+```
+This opens a browser window for you to sign in.
+
+**4. Create a resource group** (pick any Azure region near you, e.g.
+`eastus`, `centralindia`, `southeastasia`):
+```
+az group create --name rg-fraud-detection-sea --location southeastasia
+```
+
+**5. Create the ML workspace:**
+```
+az ml workspace create --name mlw-fraud-detection --resource-group rg-fraud-detection-sea --location southeastasia
+```
+This takes a couple of minutes — it's also quietly creating a storage
+account, a key vault, and an insights resource for you, all bundled
+inside the resource group.
+
+**6. Save yourself repetitive typing:**
+```
+az configure --defaults group=rg-fraud-detection-sea workspace=mlw-fraud-detection
+```
+
+**7. Create the compute cluster** (the VM size below is a small, cheap
+one — fine for this dataset size):
+```
+az ml compute create --name cpu-cluster --type AmlCompute --size Standard_DS2_v2 --min-instances 0 --max-instances 1
+```
+
+**8. Register the training environment** (the "recipe" of Python
+packages, defined in `aml/aml-environment.yml`):
+```
+az ml environment create --file aml/aml-environment.yml
+```
+
+**9. Install the Python libraries that let YOUR laptop talk to Azure**
+(already added to `requirements.txt`, so just re-run):
+```
+pip install -r requirements.txt
+```
+
+**10. Register the dataset as a Data Asset.** First, find your
+subscription ID:
+```
+az account show --query id -o tsv
+```
+Then set it as an environment variable and run the registration script
+(`src/cloud/register_data_asset.py`):
+- **Mac/Linux:**
+  ```
+  export AZURE_SUBSCRIPTION_ID=<paste the id from above>
+  python -m src.cloud.register_data_asset
+  ```
+- **Windows (PowerShell):**
+  ```
+  $env:AZURE_SUBSCRIPTION_ID="<paste the id from above>"
+  python -m src.cloud.register_data_asset
+  ```
+
+**11. Submit the actual training job to the cloud:**
+```
+az ml job create --file aml/job.yml --web
+```
+`--web` opens the job's live page in Azure ML Studio, where you can
+watch logs stream in real time and see the PR-AUC / ROC-AUC metrics
+appear once it finishes (usually a few minutes).
+
+**12. Download the trained model back to your laptop** once the job
+shows "Completed" (replace `<job-name>` with the name shown in Studio
+or printed by step 11):
+```
+az ml job download --name <job-name> --output-name model_dir --download-path ./outputs/from_azure
+```
+
+### Cost note — please read
+
+The compute cluster only costs money while a job is actually running
+on it (`min-instances 0` means it scales to zero and costs nothing
+while idle). Still:
+- Check **Cost Management** in the Azure Portal occasionally.
+- When you're done experimenting for the day, you can stop worrying
+  about it since idle compute is free — but if you want to be
+  extra safe, delete the compute with
+  `az ml compute delete --name cpu-cluster` and recreate it (step 7)
+  next time.
+- When you're completely done with this project, delete everything at
+  once with `az group delete --name rg-fraud-detection` — this removes
+  every resource we created, guaranteed zero ongoing cost.
+
+---
+
+## 14. Swap in the REAL dataset (once you're ready)
 
 1. Go to https://www.kaggle.com/ and create a free account.
 2. Search for **"Credit Card Fraud Detection" (ULB / Worldline /
@@ -275,9 +422,9 @@ teams use before anything reaches production.
 2. ~~Advanced model: XGBoost with imbalance handling, compared fairly
    against the baseline~~ ✅
 3. ~~Clean, reusable pipeline + MLflow experiment tracking + a
-   champion/challenger registry~~ ✅ *(you are here)*
-4. Move training into Azure ML (cloud), with the dataset registered as
-   a Data Asset.
+   champion/challenger registry~~ ✅
+4. ~~Move training into Azure ML (cloud), with the dataset registered
+   as a Data Asset~~ ✅ *(you are here)*
 5. Automate it: GitHub Actions runs your tests and retrains the model
    every time you push code (CI/CD).
 6. Deploy the model behind a real-time scoring API (Azure Managed
@@ -287,7 +434,7 @@ teams use before anything reaches production.
 8. Wrap the cloud infrastructure itself in Terraform, so the whole
    system can be rebuilt from scratch with one command.
 
-Come back and say "let's do phase 4" whenever you're ready to keep
+Come back and say "let's do phase 5" whenever you're ready to keep
 going.
 
 ## Project folder map
@@ -313,8 +460,15 @@ fraud-detection-pipeline/
 │   ├── pipeline/
 │   │   ├── validate_data.py      <- data sanity checks (stage 1)
 │   │   └── train_pipeline.py     <- runs every stage + MLflow + registry
+│   ├── cloud/
+│   │   ├── register_data_asset.py <- uploads dataset to Azure ML
+│   │   └── train_job_entry.py     <- the script that runs INSIDE Azure
 │   └── utils/
 │       └── config.py             <- all file paths & constants
+├── aml/
+│   ├── environment.yml           <- conda recipe for the cloud job
+│   ├── aml-environment.yml       <- registers that recipe with Azure
+│   └── job.yml                   <- describes one cloud training run
 ├── tests/
 │   ├── test_features.py          <- automated checks for our code
 │   └── test_validate_data.py     <- automated checks for validation

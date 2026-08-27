@@ -1,0 +1,12 @@
+# Registers environment.yml (above) as a named, versioned "Environment"
+# asset in Azure ML — so job.yml can reference it by name instead of
+# rebuilding the container image from scratch every single run.
+#
+# Create/update it with:
+#     az ml environment create --file aml/aml-environment.yml
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+name: fraud-detection-env
+version: 1
+conda_file: environment.yml
+image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
+description: Python environment for the fraud detection training job.
