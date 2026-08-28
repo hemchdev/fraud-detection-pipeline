@@ -316,7 +316,7 @@ This opens a browser window for you to sign in.
 **4. Create a resource group** (pick any Azure region near you, e.g.
 `eastus`, `centralindia`, `southeastasia`):
 ```
-az group create --name rg-fraud-detection --location centralindia
+az group create --name rg-fraud-detection --location southeastasia
 ```
 
 **5. Create the ML workspace:**
@@ -329,7 +329,7 @@ inside the resource group.
 
 **6. Save yourself repetitive typing:**
 ```
-az configure --defaults group=rg-fraud-detection workspace=mlw-fraud-detection
+az configure --defaults group=rg-fraud-detection-sea workspace=mlw-fraud-detection-sea
 ```
 
 **7. Create the compute cluster** (the VM size below is a small, cheap
@@ -542,15 +542,9 @@ submit a real job to Azure.
 5. ~~CI/CD: GitHub Actions runs tests + security scans on every push,
    and retrains + gates promotion on every push to main~~ ✅
    *(you are here)*
-6. Deploy the model behind a real-time scoring API (Azure Managed
-   Online Endpoint) with a <150ms response target.
-7. Add monitoring: watch for data drift and automatically trigger
-   retraining when fraud patterns shift.
-8. Wrap the cloud infrastructure itself in Terraform, so the whole
-   system can be rebuilt from scratch with one command.
+6. ~~Deploy the model behind a real-time scoring API (Azure Managed
+   Online Endpoint) with a <150ms response target.~~ ✅
 
-Come back and say "let's do phase 6" whenever you're ready to keep
-going.
 
 ## Project folder map
 

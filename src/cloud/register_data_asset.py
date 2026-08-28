@@ -37,8 +37,8 @@ DATA_ASSET_NAME = "fraud-creditcard-data"
 
 def register():
     subscription_id = os.environ["AZURE_SUBSCRIPTION_ID"]
-    resource_group = os.environ.get("AZURE_RESOURCE_GROUP", "rg-fraud-detection")
-    workspace_name = os.environ.get("AZURE_ML_WORKSPACE", "mlw-fraud-detection")
+    resource_group = os.environ.get("AZURE_RESOURCE_GROUP", "rg-fraud-detection-sea")
+    workspace_name = os.environ.get("AZURE_ML_WORKSPACE", "mlw-fraud-detection-sea")
 
     # DefaultAzureCredential automatically uses whatever you're already
     # logged in with via `az login` — no separate password needed here.

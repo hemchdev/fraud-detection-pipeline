@@ -21,7 +21,7 @@ outputs:
   model_dir:
     type: uri_folder
     mode: rw_mount
-environment: azureml:fraud-detection-env@latest
+environment: azureml:fraud-detection-env:1
 compute: azureml:cpu-cluster
 experiment_name: fraud-detection-cloud
 display_name: fraud-xgboost-cloud-training
