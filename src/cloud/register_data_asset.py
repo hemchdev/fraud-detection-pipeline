@@ -22,6 +22,7 @@ BEFORE RUNNING THIS, YOU NEED (see README Phase 4 for the full walkthrough):
 Run it with:
     python -m src.cloud.register_data_asset
 """
+
 import os
 
 from azure.ai.ml import MLClient
@@ -36,7 +37,7 @@ DATA_ASSET_NAME = "fraud-creditcard-data"
 
 def register():
     subscription_id = os.environ["AZURE_SUBSCRIPTION_ID"]
-    resource_group = os.environ.get("AZURE_RESOURCE_GROUP", "rg-fraud-detection-sea")
+    resource_group = os.environ.get("AZURE_RESOURCE_GROUP", "rg-fraud-detection")
     workspace_name = os.environ.get("AZURE_ML_WORKSPACE", "mlw-fraud-detection")
 
     # DefaultAzureCredential automatically uses whatever you're already
@@ -50,7 +51,7 @@ def register():
 
     data_asset = Data(
         name=DATA_ASSET_NAME,
-        description="Kaggle credit card fraud dataset (ULB/Worldline), or the local practice sample.",
+        description="Kaggle credit card fraud dataset (ULB/Worldline), or the local sample.",
         path=RAW_DATA_PATH,
         type=AssetTypes.URI_FILE,
     )

@@ -34,6 +34,7 @@ head-to-head in compare_models.py):
 Run it with:
     python -m src.models.train_xgboost
 """
+
 import os
 import joblib
 from xgboost import XGBClassifier
@@ -84,12 +85,16 @@ def train_with_smote():
     n_fraud = int((y_train == 1).sum())
 
     if n_fraud < 2:
-        print("Not enough fraud rows in the training set to run SMOTE "
-              "(need at least 2). Try regenerating sample data with more "
-              "rows, or use the real Kaggle dataset. Skipping.")
+        print(
+            "Not enough fraud rows in the training set to run SMOTE "
+            "(need at least 2). Try regenerating sample data with more "
+            "rows, or use the real Kaggle dataset. Skipping."
+        )
         return None
 
-    print(f"Before SMOTE — fraud rows: {n_fraud}, normal rows: {int((y_train == 0).sum())}")
+    print(
+        f"Before SMOTE — fraud rows: {n_fraud}, normal rows: {int((y_train == 0).sum())}"
+    )
 
     # k_neighbors must be smaller than the number of fraud rows we have,
     # so this stays safe even on a tiny practice dataset.
@@ -97,8 +102,10 @@ def train_with_smote():
     smote = SMOTE(random_state=RANDOM_SEED, k_neighbors=k_neighbors)
     X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
 
-    print(f"After SMOTE  — fraud rows: {int((y_resampled == 1).sum())}, "
-          f"normal rows: {int((y_resampled == 0).sum())}")
+    print(
+        f"After SMOTE  — fraud rows: {int((y_resampled == 1).sum())}, "
+        f"normal rows: {int((y_resampled == 0).sum())}"
+    )
 
     model = XGBClassifier(
         n_estimators=300,

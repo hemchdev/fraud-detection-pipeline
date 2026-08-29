@@ -13,6 +13,7 @@ model? Two reasons:
 Run it from the project's top folder with:
     python -m src.models.train_baseline
 """
+
 import os
 import joblib
 from sklearn.linear_model import LogisticRegression
@@ -37,14 +38,19 @@ def train():
     # pay extra attention to the few you see." Without this, a lazy
     # model could get 99.8% accuracy just by guessing "not fraud" on
     # every single transaction, which would be useless in real life.
-    model = Pipeline([
-        ("scaler", StandardScaler()),
-        ("clf", LogisticRegression(
-            class_weight="balanced",
-            max_iter=1000,
-            random_state=RANDOM_SEED,
-        )),
-    ])
+    model = Pipeline(
+        [
+            ("scaler", StandardScaler()),
+            (
+                "clf",
+                LogisticRegression(
+                    class_weight="balanced",
+                    max_iter=1000,
+                    random_state=RANDOM_SEED,
+                ),
+            ),
+        ]
+    )
 
     model.fit(X_train, y_train)
 

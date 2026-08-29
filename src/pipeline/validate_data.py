@@ -12,6 +12,7 @@ so you can see exactly what gets checked and why.
 Run it with:
     python -m src.pipeline.validate_data
 """
+
 import pandas as pd
 
 from src.utils.config import TARGET_COLUMN

@@ -1,0 +1,66 @@
+# Runs the cloud training job on every push to main (or manually), and
+# only "promotes" the result if it beats the current champion model.
+#
+# BEFORE THIS WILL WORK, you need to give GitHub permission to log into
+# your Azure account WITHOUT storing a password as a secret. This uses
+# "OIDC federated credentials" — Azure trusts GitHub's own identity
+# token instead. See README Phase 5 for the exact setup commands and
+# the three secrets this workflow expects:
+#   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
+name: CD - Train on Azure ML
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write   # required for OIDC login to Azure
+  contents: write    # required to commit an updated champion file back to the repo
+
+jobs:
+  train-and-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install Azure ML CLI extension
+        run: az extension add -n ml -y
+
+      - name: Set default resource group & workspace
+        run: az configure --defaults group=rg-fraud-detection workspace=mlw-fraud-detection
+
+      # --stream prints the job's live console output right into this
+      # step's log — including the "PR-AUC: ..." line our training
+      # script prints. `tee` saves a copy of it to a file so the next
+      # step can read it back.
+      - name: Submit training job to Azure ML
+        run: az ml job create --file aml/job.yml --stream | tee job_output.log
+
+      - name: Parse metrics from job output
+        id: metrics
+        run: python aml/parse_metrics.py job_output.log
+
+      - name: Evaluate against current champion
+        id: gate
+        run: |
+          python aml/evaluation_gate.py \
+            --new-pr-auc ${{ steps.metrics.outputs.pr_auc }} \
+            --new-roc-auc ${{ steps.metrics.outputs.roc_auc }} \
+            --new-recall ${{ steps.metrics.outputs.recall_at_90_precision }}
+
+      - name: Commit updated champion metrics
+        if: steps.gate.outputs.promoted == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add aml/champion_metrics.json
+          git commit -m "Promote new champion (PR-AUC=${{ steps.metrics.outputs.pr_auc }})"
+          git push

@@ -12,6 +12,7 @@ unchanged.
 Run it from the project's top folder with:
     python -m src.data.make_sample_data
 """
+
 import os
 import numpy as np
 import pandas as pd

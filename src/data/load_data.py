@@ -18,6 +18,7 @@ in this project.
 Run it directly to see the split sizes:
     python -m src.data.load_data
 """
+
 import pandas as pd
 
 from src.utils.config import RAW_DATA_PATH, TARGET_COLUMN
@@ -27,7 +28,9 @@ def load_raw_data() -> pd.DataFrame:
     return pd.read_csv(RAW_DATA_PATH)
 
 
-def time_ordered_split(df: pd.DataFrame, train_frac: float = 0.7, val_frac: float = 0.15):
+def time_ordered_split(
+    df: pd.DataFrame, train_frac: float = 0.7, val_frac: float = 0.15
+):
     """
     Splits a dataframe into train / val / test, in TIME order.
     Example with train_frac=0.7, val_frac=0.15:

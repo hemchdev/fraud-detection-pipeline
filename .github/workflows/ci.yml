@@ -1,0 +1,54 @@
+# Runs automatically on every push and pull request. If any step here
+# fails, the PR gets a red X in GitHub — a teammate (or future-you)
+# can't accidentally merge broken code.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      # Checks the code is formatted consistently. Doesn't check if the
+      # code WORKS — just that everyone's code looks the same style,
+      # so diffs in pull requests only show real changes.
+      - name: Check code formatting (black)
+        run: black --check src tests
+
+      # Catches real bugs black won't: unused imports, undefined
+      # variables, etc.
+      - name: Lint (flake8)
+        run: flake8 src tests
+
+      # Our actual test suite — includes the data validation tests,
+      # which is our stand-in for the "Great Expectations" data
+      # validation stage from the project spec.
+      - name: Run tests
+        run: pytest -q
+
+      # Checks every dependency (and every dependency OF every
+      # dependency) against a public database of known security
+      # vulnerabilities. PYSEC-2026-3552 is explicitly accepted here —
+      # see the comment in requirements.txt for why it can't be fixed
+      # yet (mlflow's own dependency range blocks the patched version).
+      - name: Security scan dependencies (pip-audit)
+        run: pip-audit -r requirements.txt --ignore-vuln PYSEC-2026-3552
+
+      # Confirms the training container still builds successfully —
+      # catches a broken Dockerfile before it reaches deployment.
+      - name: Build Docker image (smoke test)
+        run: docker build -t fraud-detection:ci .

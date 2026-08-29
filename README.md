@@ -316,12 +316,12 @@ This opens a browser window for you to sign in.
 **4. Create a resource group** (pick any Azure region near you, e.g.
 `eastus`, `centralindia`, `southeastasia`):
 ```
-az group create --name rg-fraud-detection-sea --location southeastasia
+az group create --name rg-fraud-detection --location centralindia
 ```
 
 **5. Create the ML workspace:**
 ```
-az ml workspace create --name mlw-fraud-detection --resource-group rg-fraud-detection-sea --location southeastasia
+az ml workspace create --name mlw-fraud-detection --resource-group rg-fraud-detection
 ```
 This takes a couple of minutes — it's also quietly creating a storage
 account, a key vault, and an insights resource for you, all bundled
@@ -329,7 +329,7 @@ inside the resource group.
 
 **6. Save yourself repetitive typing:**
 ```
-az configure --defaults group=rg-fraud-detection-sea workspace=mlw-fraud-detection
+az configure --defaults group=rg-fraud-detection workspace=mlw-fraud-detection
 ```
 
 **7. Create the compute cluster** (the VM size below is a small, cheap
@@ -400,7 +400,121 @@ while idle). Still:
 
 ---
 
-## 14. Swap in the REAL dataset (once you're ready)
+## 15. Phase 5 — CI/CD with GitHub Actions
+
+**What I actually tested this time:** everything except the two
+GitHub Actions workflow files themselves — I can't run GitHub Actions
+or a Docker build from here (this sandbox has no Docker and no
+network access to Docker Hub). But I ran every individual *piece* the
+workflows call, for real, with real output:
+- `black`, `flake8`, and `pytest` — actually run against this exact
+  codebase (I had to fix real formatting issues and one real line-
+  length issue that came up)
+- `pip-audit` — actually run, and it found a REAL known vulnerability
+  (see the callout below — this wasn't staged)
+- `aml/parse_metrics.py` and `aml/evaluation_gate.py` — run against
+  real captured output from `train_job_entry.py`, including testing
+  both outcomes: a model that gets promoted, and one that correctly
+  gets rejected
+
+**What I couldn't test:** the GitHub Actions YAML files running for
+real, and the Docker build (needs a Docker Hub connection this sandbox
+doesn't have). I checked both YAML files parse correctly, but if
+something errors once it's actually on GitHub, paste me the error.
+
+### A real thing this caught: a security vulnerability
+
+Running `pip-audit` against this project's dependencies for real
+turned up an actual, currently-known vulnerability in `cryptography`
+(a package we don't even use directly — it's pulled in indirectly by
+`azure-identity`). I tried the obvious fix (pin `cryptography` to the
+patched version) and it broke: `mlflow` itself refuses to install
+alongside that newer version. This is a real, unavoidable conflict
+right now, not something I made up to teach a lesson.
+
+**What real teams do in exactly this situation:** you can't fix it
+today, so you document that you know about it and choose to accept it,
+instead of either ignoring it silently or blocking all your work on
+it. That's what `--ignore-vuln PYSEC-2026-3552` in the CI workflow
+does — it's a *visible, named* exception, not a hidden one. If mlflow
+later loosens its dependency range, you'd remove that flag and let the
+scan catch it normally again.
+
+### What's new
+
+**CI** (`.github/workflows/ci.yml`) runs on every push and pull
+request:
+1. Install dependencies
+2. `black --check` — is the code formatted consistently?
+3. `flake8` — any real lint issues (unused imports, etc.)?
+4. `pytest` — do all our tests pass? (this includes the data
+   validation tests from Phase 3 — our stand-in for the "Great
+   Expectations" stage in the original project spec)
+5. `pip-audit` — any known security vulnerabilities in our
+   dependencies?
+6. `docker build` — does the training container still build?
+
+**CD** (`.github/workflows/cd.yml`) runs on every push to `main` (or
+manually):
+1. Logs into Azure
+2. Submits the training job (`az ml job create --file aml/job.yml`)
+   and captures its live output
+3. Parses out the PR-AUC score
+4. Compares it against `aml/champion_metrics.json` — the model only
+   gets "promoted" (that file gets updated and committed back to the
+   repo) if it's at least as good as what's there already
+
+### One-time setup: letting GitHub log into your Azure account
+
+GitHub Actions needs permission to run `az` commands as you — but we
+do this WITHOUT storing an Azure password as a GitHub secret, using
+something called **OIDC federated credentials**: Azure is told to
+trust GitHub's own signed identity token for this specific repo, so
+there's no long-lived password sitting in your GitHub settings for
+someone to steal.
+
+**1. Create an "app registration" Azure can use to identify GitHub:**
+```
+az ad app create --display-name "fraud-detection-github-actions"
+```
+Note the `appId` it prints — that's your `AZURE_CLIENT_ID`.
+
+**2. Create a federated credential** tying that app to your GitHub
+repo (replace `<your-github-username>` and `<your-repo-name>`):
+```
+az ad app federated-credential create \
+  --id <appId from step 1> \
+  --parameters '{
+    "name": "github-actions-main",
+    "issuer": "https://token.actions.githubusercontent.com",
+    "subject": "repo:<your-github-username>/<your-repo-name>:ref:refs/heads/main",
+    "audiences": ["api://AzureADTokenExchange"]
+  }'
+```
+
+**3. Give that app permission on your resource group:**
+```
+az role assignment create \
+  --assignee <appId from step 1> \
+  --role Contributor \
+  --scope /subscriptions/<your-subscription-id>/resourceGroups/rg-fraud-detection
+```
+
+**4. Add three secrets to your GitHub repo** (Settings → Secrets and
+variables → Actions → New repository secret):
+| Secret name | Value |
+|---|---|
+| `AZURE_CLIENT_ID` | the `appId` from step 1 |
+| `AZURE_TENANT_ID` | output of `az account show --query tenantId -o tsv` |
+| `AZURE_SUBSCRIPTION_ID` | output of `az account show --query id -o tsv` |
+
+Push to `main` and check the **Actions** tab on GitHub — you should
+see CI run automatically, and (once the secrets above are set) CD
+submit a real job to Azure.
+
+---
+
+## 16. Swap in the REAL dataset (once you're ready)
 
 1. Go to https://www.kaggle.com/ and create a free account.
 2. Search for **"Credit Card Fraud Detection" (ULB / Worldline /
@@ -424,9 +538,10 @@ while idle). Still:
 3. ~~Clean, reusable pipeline + MLflow experiment tracking + a
    champion/challenger registry~~ ✅
 4. ~~Move training into Azure ML (cloud), with the dataset registered
-   as a Data Asset~~ ✅ *(you are here)*
-5. Automate it: GitHub Actions runs your tests and retrains the model
-   every time you push code (CI/CD).
+   as a Data Asset~~ ✅
+5. ~~CI/CD: GitHub Actions runs tests + security scans on every push,
+   and retrains + gates promotion on every push to main~~ ✅
+   *(you are here)*
 6. Deploy the model behind a real-time scoring API (Azure Managed
    Online Endpoint) with a <150ms response target.
 7. Add monitoring: watch for data drift and automatically trigger
@@ -434,7 +549,7 @@ while idle). Still:
 8. Wrap the cloud infrastructure itself in Terraform, so the whole
    system can be rebuilt from scratch with one command.
 
-Come back and say "let's do phase 5" whenever you're ready to keep
+Come back and say "let's do phase 6" whenever you're ready to keep
 going.
 
 ## Project folder map
@@ -468,10 +583,18 @@ fraud-detection-pipeline/
 ├── aml/
 │   ├── environment.yml           <- conda recipe for the cloud job
 │   ├── aml-environment.yml       <- registers that recipe with Azure
-│   └── job.yml                   <- describes one cloud training run
+│   ├── job.yml                   <- describes one cloud training run
+│   ├── champion_metrics.json     <- committed record of the champion
+│   ├── parse_metrics.py          <- pulls scores out of job logs
+│   └── evaluation_gate.py        <- decides whether to promote
+├── .github/workflows/
+│   ├── ci.yml                    <- lint + test + scan on every push
+│   └── cd.yml                    <- train on Azure + gate on every push to main
 ├── tests/
 │   ├── test_features.py          <- automated checks for our code
 │   └── test_validate_data.py     <- automated checks for validation
-├── requirements.txt              <- list of packages to install
+├── Dockerfile                    <- container for training/serving
+├── requirements.txt              <- packages needed to run the pipeline
+├── requirements-dev.txt          <- extra packages needed only for CI
 └── README.md                     <- this file
 ```

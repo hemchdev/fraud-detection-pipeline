@@ -22,6 +22,7 @@ It's shown here just so you know what actually happens:
         --data_path <path Azure mounted the data asset to> \
         --model_output <folder Azure expects the model in>
 """
+
 import argparse
 import os
 
@@ -40,10 +41,18 @@ from src.utils.config import TARGET_COLUMN, RANDOM_SEED
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_path", type=str, required=True,
-                         help="Path to the CSV (a mounted Azure Data Asset, or a local file for testing).")
-    parser.add_argument("--model_output", type=str, required=True,
-                         help="Folder to write the trained model into.")
+    parser.add_argument(
+        "--data_path",
+        type=str,
+        required=True,
+        help="Path to the CSV (a mounted Azure Data Asset, or a local file for testing).",
+    )
+    parser.add_argument(
+        "--model_output",
+        type=str,
+        required=True,
+        help="Folder to write the trained model into.",
+    )
     return parser.parse_args()
 
 
@@ -66,7 +75,10 @@ def main():
     n_normal = int((y_train == 0).sum())
     n_fraud = int((y_train == 1).sum())
     scale_pos_weight = n_normal / max(n_fraud, 1)
-    print(f"Training rows: {n_normal} normal, {n_fraud} fraud, scale_pos_weight={scale_pos_weight:.1f}")
+    print(
+        f"Training rows: {n_normal} normal, {n_fraud} fraud, "
+        f"scale_pos_weight={scale_pos_weight:.1f}"
+    )
 
     model = XGBClassifier(
         n_estimators=300,

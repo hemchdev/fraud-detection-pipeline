@@ -15,13 +15,14 @@ Turns raw columns into features a model can actually learn from.
   anonymizes the original bank data while keeping its patterns intact),
   so we use them exactly as given — no extra work needed.
 """
+
 import numpy as np
 import pandas as pd
 
 
 def add_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
-    df["log_amount"] = np.log1p(df["Amount"])       # log1p = log(1 + x), safe for x=0
+    df["log_amount"] = np.log1p(df["Amount"])  # log1p = log(1 + x), safe for x=0
     df["hour_of_day"] = (df["Time"] // 3600) % 24
     return df
 

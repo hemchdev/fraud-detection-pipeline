@@ -25,6 +25,7 @@ Then browse your results in a web page with:
 and open http://localhost:5000 in your browser. You'll see every run,
 its metrics, and can compare them side by side with checkboxes.
 """
+
 import os
 import json
 import mlflow
@@ -44,7 +45,10 @@ CHAMPION_METADATA_PATH = os.path.join(REGISTRY_DIR, "champion_metadata.json")
 # name -> (saved model filename, function that trains it)
 CANDIDATES = {
     "baseline_logreg": ("baseline_logreg.joblib", train_baseline_model),
-    "xgboost_scale_pos_weight": ("xgboost_scale_pos_weight.joblib", train_with_scale_pos_weight),
+    "xgboost_scale_pos_weight": (
+        "xgboost_scale_pos_weight.joblib",
+        train_with_scale_pos_weight,
+    ),
     "xgboost_smote": ("xgboost_smote.joblib", train_with_smote),
 }
 
@@ -96,7 +100,9 @@ def run_pipeline():
             mlflow.log_param("model_name", name)
             mlflow.log_metric("pr_auc", metrics["pr_auc"])
             mlflow.log_metric("roc_auc", metrics["roc_auc"])
-            mlflow.log_metric("recall_at_90_precision", metrics["recall_at_90_precision"])
+            mlflow.log_metric(
+                "recall_at_90_precision", metrics["recall_at_90_precision"]
+            )
             mlflow.log_artifact(model_path)
 
             results[name] = metrics
@@ -115,7 +121,9 @@ def run_pipeline():
 
     print(f"Best model this run: {best_name} (PR-AUC={best_metrics['pr_auc']:.4f})")
     if current:
-        print(f"Current champion:    {current['model_name']} (PR-AUC={current['pr_auc']:.4f})")
+        print(
+            f"Current champion:    {current['model_name']} (PR-AUC={current['pr_auc']:.4f})"
+        )
 
     if should_promote:
         os.makedirs(REGISTRY_DIR, exist_ok=True)
@@ -124,8 +132,10 @@ def run_pipeline():
             json.dump(metadata, f, indent=2)
         print(f"Promoted '{best_name}' to champion. See {CHAMPION_METADATA_PATH}")
     else:
-        print(f"New models did not beat the current champion. "
-              f"Champion stays: {current['model_name']}")
+        print(
+            f"New models did not beat the current champion. "
+            f"Champion stays: {current['model_name']}"
+        )
 
 
 if __name__ == "__main__":
