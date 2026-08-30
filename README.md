@@ -1,6 +1,6 @@
 <div align="center">
 
-# Fraud Detection Pipeline
+# Fraud Detection Pipeline - Azure ML
 
 An end-to-end machine learning pipeline for credit-card fraud detection, with reproducible local experiments, MLflow tracking, Azure Machine Learning training, and GitHub Actions automation.
 
