@@ -5,16 +5,16 @@
 An end-to-end machine learning pipeline for credit-card fraud detection, with reproducible local experiments, MLflow tracking, Azure Machine Learning training, and GitHub Actions automation.
 
 <p>
-  <a href="https://github.com/hemchdev/fraud-detection-pipeline/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/hemchdev/fraud-detection-pipeline/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI status"></a>
-  <a href="https://github.com/hemchdev/fraud-detection-pipeline/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-111827?style=for-the-badge" alt="MIT License"></a>
-  <a href="https://github.com/hemchdev/fraud-detection-pipeline"><img src="https://img.shields.io/badge/Status-active-0f766e?style=for-the-badge" alt="Project status: active"></a>
+  <a href="https://github.com/ihemanthc/fraud-detection-pipeline/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/ihemanthc/fraud-detection-pipeline/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI status"></a>
+  <a href="https://github.com/ihemanthc/fraud-detection-pipeline/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-111827?style=for-the-badge" alt="MIT License"></a>
+  <a href="https://github.com/ihemanthc/fraud-detection-pipeline"><img src="https://img.shields.io/badge/Status-active-0f766e?style=for-the-badge" alt="Project status: active"></a>
 </p>
 
 <p>
   <a href="#quick-start"><img src="https://img.shields.io/badge/Quick%20start-Run%20locally-2563eb?style=for-the-badge&logo=rocket&logoColor=white" alt="Quick start"></a>
   <a href="#pipeline-architecture"><img src="https://img.shields.io/badge/Architecture-View%20pipeline-7c3aed?style=for-the-badge&logo=diagramsdotnet&logoColor=white" alt="View architecture"></a>
   <a href="#azure-ml-workflow"><img src="https://img.shields.io/badge/Azure%20ML-Cloud%20training-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white" alt="Azure ML workflow"></a>
-  <a href="https://github.com/hemchdev/fraud-detection-pipeline"><img src="https://img.shields.io/badge/Source%20code-GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="View source on GitHub"></a>
+  <a href="https://github.com/ihemanthc/fraud-detection-pipeline"><img src="https://img.shields.io/badge/Source%20code-GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="View source on GitHub"></a>
 </p>
 
 <p><strong>Built with</strong></p>
@@ -93,7 +93,7 @@ flowchart LR
 ### 1. Clone and create an environment
 
 ```bash
-git clone https://github.com/hemchdev/fraud-detection-pipeline.git
+git clone https://github.com/ihemanthc/fraud-detection-pipeline.git
 cd fraud-detection-pipeline
 python -m venv .venv
 ```
