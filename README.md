@@ -33,7 +33,7 @@ An end-to-end machine learning pipeline for credit-card fraud detection, with re
 </p>
 
 <p align="center">
-  <img src="screens/01_mlflow_runs_overview.png" alt="MLflow experiment overview showing the tracked fraud detection model runs" width="1000">
+  <img src="screens/05_azure_workspace_deployment.png" alt="Azure deployment completed for the fraud detection workspace" width="900">
 </p>
 
 <p><em>Experiment overview: the baseline and XGBoost candidates tracked in MLflow.</em></p>
