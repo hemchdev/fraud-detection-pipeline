@@ -5,17 +5,38 @@
 An end-to-end machine learning pipeline for credit-card fraud detection, with reproducible local experiments, MLflow tracking, Azure Machine Learning training, and GitHub Actions automation.
 
 <p>
-  <a href="https://github.com/hemchdev/fraud-detection-pipeline/actions/workflows/ci.yml"><img src="https://github.com/hemchdev/fraud-detection-pipeline/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
-  <a href="https://github.com/hemchdev/fraud-detection-pipeline/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"></a>
-  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white" alt="Python 3.10+"></a>
-  <a href="https://github.com/hemchdev/fraud-detection-pipeline"><img src="https://img.shields.io/badge/Project%20status-active-2ea44f" alt="Project status: active"></a>
+  <a href="https://github.com/hemchdev/fraud-detection-pipeline/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/hemchdev/fraud-detection-pipeline/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI status"></a>
+  <a href="https://github.com/hemchdev/fraud-detection-pipeline/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-111827?style=for-the-badge" alt="MIT License"></a>
+  <a href="https://github.com/hemchdev/fraud-detection-pipeline"><img src="https://img.shields.io/badge/Status-active-0f766e?style=for-the-badge" alt="Project status: active"></a>
 </p>
 
 <p>
-  <a href="#quick-start"><img src="https://img.shields.io/badge/Quick%20start-Run%20locally-2563eb?style=for-the-badge" alt="Quick start"></a>
+  <a href="#quick-start"><img src="https://img.shields.io/badge/Quick%20start-Run%20locally-2563eb?style=for-the-badge&logo=rocket&logoColor=white" alt="Quick start"></a>
+  <a href="#pipeline-architecture"><img src="https://img.shields.io/badge/Architecture-View%20pipeline-7c3aed?style=for-the-badge&logo=diagramsdotnet&logoColor=white" alt="View architecture"></a>
   <a href="#azure-ml-workflow"><img src="https://img.shields.io/badge/Azure%20ML-Cloud%20training-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white" alt="Azure ML workflow"></a>
-  <a href="https://github.com/hemchdev/fraud-detection-pipeline"><img src="https://img.shields.io/badge/View%20source-GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="View source on GitHub"></a>
+  <a href="https://github.com/hemchdev/fraud-detection-pipeline"><img src="https://img.shields.io/badge/Source%20code-GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="View source on GitHub"></a>
 </p>
+
+<p><strong>Built with</strong></p>
+
+<p>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://pandas.pydata.org/"><img src="https://img.shields.io/badge/Pandas-Data-150458?style=for-the-badge&logo=pandas&logoColor=white" alt="Pandas"></a>
+  <a href="https://numpy.org/"><img src="https://img.shields.io/badge/NumPy-Compute-013243?style=for-the-badge&logo=numpy&logoColor=white" alt="NumPy"></a>
+  <a href="https://scikit-learn.org/"><img src="https://img.shields.io/badge/scikit--learn-ML-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" alt="scikit-learn"></a>
+  <a href="https://xgboost.readthedocs.io/"><img src="https://img.shields.io/badge/XGBoost-Models-EC6B23?style=for-the-badge" alt="XGBoost"></a>
+  <a href="https://imbalanced-learn.org/"><img src="https://img.shields.io/badge/SMOTE-Imbalance-4B8BBE?style=for-the-badge" alt="imbalanced-learn"></a>
+  <a href="https://mlflow.org/"><img src="https://img.shields.io/badge/MLflow-Tracking-0194E2?style=for-the-badge&logo=mlflow&logoColor=white" alt="MLflow"></a>
+  <a href="https://azure.microsoft.com/products/machine-learning"><img src="https://img.shields.io/badge/Azure%20ML-Cloud-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white" alt="Azure Machine Learning"></a>
+  <a href="https://github.com/features/actions"><img src="https://img.shields.io/badge/Actions-CI%2FCD-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="GitHub Actions"></a>
+  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-Runtime-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"></a>
+</p>
+
+<p align="center">
+  <img src="screens/01_mlflow_runs_overview.png" alt="MLflow experiment overview showing the tracked fraud detection model runs" width="1000">
+</p>
+
+<p><em>Experiment overview: the baseline and XGBoost candidates tracked in MLflow.</em></p>
 
 </div>
 
@@ -29,21 +50,6 @@ The repository supports both:
 - **Azure ML execution** for managed cloud training, versioned data assets, and captured job outputs.
 
 > The included generator creates a synthetic dataset for development. It is useful for validating the pipeline, but its results must not be treated as production model performance.
-
-## Tech stack
-
-<p>
-  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
-  <a href="https://pandas.pydata.org/"><img src="https://img.shields.io/badge/Pandas-data%20processing-150458?style=flat-square&logo=pandas&logoColor=white" alt="Pandas"></a>
-  <a href="https://numpy.org/"><img src="https://img.shields.io/badge/NumPy-numerical%20computing-013243?style=flat-square&logo=numpy&logoColor=white" alt="NumPy"></a>
-  <a href="https://scikit-learn.org/"><img src="https://img.shields.io/badge/scikit--learn-baseline%20ML-F7931E?style=flat-square&logo=scikit-learn&logoColor=white" alt="scikit-learn"></a>
-  <a href="https://xgboost.readthedocs.io/"><img src="https://img.shields.io/badge/XGBoost-boosted%20trees-EC6B23?style=flat-square" alt="XGBoost"></a>
-  <a href="https://imbalanced-learn.org/"><img src="https://img.shields.io/badge/imbalanced--learn-SMOTE-4B8BBE?style=flat-square" alt="imbalanced-learn"></a>
-  <a href="https://mlflow.org/"><img src="https://img.shields.io/badge/MLflow-experiment%20tracking-0194E2?style=flat-square&logo=mlflow&logoColor=white" alt="MLflow"></a>
-  <a href="https://azure.microsoft.com/products/machine-learning"><img src="https://img.shields.io/badge/Azure%20ML-managed%20training-0078D4?style=flat-square&logo=microsoftazure&logoColor=white" alt="Azure Machine Learning"></a>
-  <a href="https://github.com/features/actions"><img src="https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?style=flat-square&logo=githubactions&logoColor=white" alt="GitHub Actions"></a>
-  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-reproducible%20runtime-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker"></a>
-</p>
 
 ## Capabilities
 
@@ -175,13 +181,7 @@ One captured Azure ML run reported the following values. Results vary with the i
 
 ## Experiment tracking evidence
 
-The screenshots below document the local MLflow workflow: tracked candidate runs, per-run metrics, and side-by-side model comparisons.
-
-<p align="center">
-  <img src="screens/01_mlflow_runs_overview.png" alt="MLflow experiment with three tracked model runs" width="900">
-</p>
-
-<p align="center"><em>Three candidate models tracked in the fraud-detection experiment.</em></p>
+The screenshots below document the local MLflow workflow: per-run metrics and side-by-side model comparisons. The experiment overview is shown in the hero image above.
 
 <p align="center">
   <img src="screens/02_mlflow_xgboost_smote_metrics.png" alt="MLflow metrics for the XGBoost SMOTE run" width="900">
